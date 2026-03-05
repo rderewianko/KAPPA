@@ -102,6 +102,8 @@ class Configurator(Processor):
         self.recipe_enforcement_delays = self.env.get("enforcement_delays", None)
         # Check if recipe specifies a per-recipe enforcement type override
         self.recipe_enforcement_type = self.env.get("enforcement_type", None)
+        # Check if recipe specifies a custom audit/enforce script path
+        self.recipe_audit_script = self.env.get("audit_script", None)
         if self.recipe_custom_app:
             self.recipe_custom_name = self.recipe_custom_app.get("prod_name", None)
             self.recipe_test_name = self.recipe_custom_app.get("test_name", None)

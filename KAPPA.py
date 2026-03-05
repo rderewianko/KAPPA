@@ -77,6 +77,15 @@ class KAPPA(Configurator, Utilities):
                 "Has no effect if ss_category is set (self_service is implied)."
             ),
         },
+        "audit_script": {
+            "required": False,
+            "description": (
+                "Path to a custom audit/enforce script to upload instead of the default "
+                "audit_app_and_version.zsh. Supports absolute paths or paths relative to "
+                "the KAPPA processor directory. Use %RECIPE_DIR%/your_script.zsh to "
+                "reference a script bundled alongside your recipe."
+            ),
+        },
         "create_new": {
             "required": False,
             "description": "Boolean to toggle creation of a new LI (default: False)",
@@ -239,7 +248,17 @@ class KAPPA(Configurator, Utilities):
         # Reads config and assigns needed vars for runtime
         # Also validates and populates values for Kandji/Slack (if defined)
         self.populate_from_config()
-        self.audit_script_path = os.path.join(self.parent_dir, self.audit_script)
+        if self.recipe_audit_script:
+            # Absolute path used as-is; relative path resolved from KAPPA dir
+            if os.path.isabs(self.recipe_audit_script):
+                self.audit_script_path = self.recipe_audit_script
+            else:
+                self.audit_script_path = os.path.join(self.parent_dir, self.recipe_audit_script)
+            if not os.path.exists(self.audit_script_path):
+                raise ProcessorError(f"ERROR: Custom audit script not found at '{self.audit_script_path}'")
+            self.output(f"Using custom audit script: {self.audit_script_path}")
+        else:
+            self.audit_script_path = os.path.join(self.parent_dir, self.audit_script)
         if self.custom_app_enforcement == "continuously_enforce":
             if (self.app_name is None and self.bundle_id is None) or self.app_vers is None:
                 # This info is needed for auditing/enforcement, so split the PKG and find it
